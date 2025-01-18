@@ -1,4 +1,4 @@
-# Podcast Management Script
+# `pod` - barebones podcast management script
 
 A minimal set of tools to manage podcast channels. Written in bash and Python.
 
@@ -14,8 +14,8 @@ A minimal set of tools to manage podcast channels. Written in bash and Python.
 Create a directory for podcasts and deploy the scripts:
 
 ```
-$ git clone https://github.com/yumemio/podtool
-$ mv podtool ~/rec/podcasts
+$ git clone https://github.com/yumemio/pod
+$ mv pod ~/rec/podcasts
 $ cd ~/rec/podcasts
 ```
 
