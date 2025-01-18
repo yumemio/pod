@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -eu
+
+PWD="$(pwd)"
+
+# ./pod create <title> <url>
+if [ "$1" = 'create' ]; then
+    shift 1
+
+    CHANNEL_DIR="${PWD}/$1"
+    URL="$2"
+
+    mkdir "${CHANNEL_DIR}"
+    echo "${URL}" > "${CHANNEL_DIR}/_url"
+
+# ./pod list <title>
+elif [ "$1" = 'list' ]; then
+    shift 1
+    CHANNEL_NAME="$1"
+    PODCAST_URL="$(cat "${CHANNEL_NAME}/_url")"
+
+    "${PWD}/bin/list" \
+        --url "${PODCAST_URL}"
+
+# ./pod download <title> <id|id1,id2|id1-id3>
+elif [ "$1" = 'download' ]; then
+    shift 1
+    CHANNEL_NAME="$1"
+    PODCAST_URL="$(cat "${CHANNEL_NAME}/_url")"
+
+    shift 1
+    "${PWD}/bin/download" \
+        --url "${PODCAST_URL}" \
+        --output_dir "${PWD}/${CHANNEL_NAME}/" \
+        $@
+
+else
+    echo "Unknown command $1"
+    exit 255
+
+fi

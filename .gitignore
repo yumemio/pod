@@ -1,0 +1,9 @@
+# Ignore podcasts
+*
+
+# but not bins and related files
+!README.md
+!.gitignore
+!pod
+!bin
+!requirements.txt

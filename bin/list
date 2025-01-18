@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+import argparse
+import xml.etree.ElementTree as ET
+import subprocess
+import requests
+
+
+def fetch_rss_feed(url):
+    """Fetches RSS feed content from the given URL."""
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    return response.text
+
+
+def extract_titles(rss_content):
+    """Parses the RSS feed content and extracts podcast episode titles."""
+    root = ET.fromstring(rss_content)
+    titles = []
+
+    # Extract all <item> elements
+    for item in root.findall(".//item"):
+        title = item.find("title")
+        if title is not None:
+            titles.append(title.text.strip())
+
+    return titles
+
+
+def main():
+    """Main function to fetch RSS feed and extract titles."""
+    parser = argparse.ArgumentParser(
+        description="Download podcast episodes from an RSS feed.")
+    parser.add_argument(
+        "-u", "--url", required=True,
+        help="RSS feed URL")
+    args = parser.parse_args()
+
+    print(f"Fetching RSS feed from {args.url}...")
+    rss_content = fetch_rss_feed(args.url)
+
+    print("Extracting podcast titles...")
+    titles = extract_titles(rss_content)
+
+    output_lines = [
+        "Podcast Titles:",
+        *(f"{i}. {title}" for i, title in enumerate(titles, start=1))
+    ]
+    output = "\n".join(output_lines)
+
+    # Pipe the output to less
+    subprocess.run(["less"], input=output.encode(), check=True)
+
+
+if __name__ == "__main__":
+    main()

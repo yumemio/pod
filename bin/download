@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+import argparse
+import os
+import xml.etree.ElementTree as ET
+from datetime import datetime
+import requests
+from tqdm import tqdm
+
+
+def fetch_rss_feed(feed_url):
+    """Fetch the RSS feed and return its XML root."""
+    response = requests.get(feed_url, timeout=10)
+    response.raise_for_status()
+    return ET.fromstring(response.content)
+
+
+def parse_episodes(rss_root):
+    """Parse episodes from RSS feed and return a list of (date, title, audio_url)."""
+    episodes = []
+
+    for item in rss_root.findall(".//item"):
+        title_elem = item.find("title")
+        pub_date_elem = item.find("pubDate")
+        enclosure_elem = item.find("enclosure")
+
+        if title_elem is None or pub_date_elem is None or enclosure_elem is None:
+            continue
+
+        title = title_elem.text.strip()
+        pub_date = pub_date_elem.text.strip()
+        audio_url = enclosure_elem.get("url")
+
+        # Convert pubDate to YYYY-MM-DD format
+        try:
+            pub_date_obj = datetime.strptime(pub_date, "%a, %d %b %Y %H:%M:%S %z")
+            pub_date_str = pub_date_obj.strftime("%Y-%m-%d")
+        except ValueError:
+            continue  # Skip if date format is unexpected
+
+        episodes.append((pub_date_str, title, audio_url))
+
+    return episodes
+
+
+def sanitize_filename(title):
+    """Sanitize episode title for use as a filename."""
+    return "".join(
+        c if c.isalnum() or c in (' ', '_', '-')
+          else "_"
+        for c in title
+    ).strip().replace(" ", "_")
+
+
+def download_file(url, output_path):
+    """Download a file from a URL with a progress bar."""
+    response = requests.get(url, stream=True, timeout=10)
+    response.raise_for_status()
+
+    total_size = int(response.headers.get('content-length', 0))
+
+    with open(output_path, "wb") as file, tqdm(
+        desc=os.path.basename(output_path)[:60],
+        total=total_size,
+        unit="B",
+        unit_scale=True,
+        unit_divisor=1024,
+    ) as bar:
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:
+                file.write(chunk)
+                bar.update(len(chunk))
+
+    print(f"Downloaded: {output_path}")
+
+
+def parse_episode_selection(selection_str, max_index):
+    """Parse episode selection string (e.g., '1', '1-3', '1,2') and return a set of indices."""
+    indices = set()
+
+    for part in selection_str.split(","):
+        if "-" in part:
+            start, end = map(int, part.split("-"))
+            indices.update(range(start, end + 1))
+        else:
+            indices.add(int(part))
+
+    return {i - 1 for i in indices if 1 <= i <= max_index}
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Download podcast episodes from an RSS feed.")
+    parser.add_argument(
+        "-u", "--url", required=True, help="RSS feed URL")
+    parser.add_argument(
+        "-o", "--output_dir", default=".", help="Directory to save downloaded episodes")
+    parser.add_argument(
+        "episodes", type=str,
+        help="Episode numbers to download (e.g., '1', '1-3', '1,2')")
+    args = parser.parse_args()
+
+    os.makedirs(args.output_dir, exist_ok=True)
+
+    print(f"Fetching RSS feed from {args.url}...")
+    rss_root = fetch_rss_feed(args.url)
+
+    episodes = parse_episodes(rss_root)
+    if not episodes:
+        print("No episodes found in the RSS feed.")
+        return
+
+    max_index = len(episodes)
+    selected_indices = parse_episode_selection(args.episodes, max_index)
+
+    if not selected_indices:
+        print("No valid episodes selected.")
+        return
+
+    for index in sorted(selected_indices):
+        pub_date, title, audio_url = episodes[index]
+        filename = f"{pub_date}_{sanitize_filename(title)}.mp3"
+        output_path = os.path.join(args.output_dir, filename)
+
+        if os.path.exists(output_path):
+            print(f"Skipping existing file: {output_path}")
+            continue
+
+        print(f"Downloading episode {index + 1}: {title}...")
+        download_file(audio_url, output_path)
+
+
+if __name__ == "__main__":
+    main()
