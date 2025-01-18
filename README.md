@@ -2,6 +2,8 @@
 
 A minimal set of tools to manage podcast channels. Written in bash and Python.
 
+![](demo.gif)
+
 ## Prerequisites
 
 - Bash

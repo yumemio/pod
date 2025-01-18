@@ -3,6 +3,7 @@
 
 # but not bins and related files
 !README.md
+!demo.gif
 !.gitignore
 !pod
 !bin
