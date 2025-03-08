@@ -1,6 +1,6 @@
-# `pod` - barebones podcast management script
+# `pod` - barebones CLI podcast downloader
 
-A minimal set of tools to manage podcast channels. Written in bash and Python.
+`pod` fetches podcast RSS feeds and downloads audio files.
 
 ![](demo.gif)
 
