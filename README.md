@@ -87,7 +87,7 @@ $ ./pod download me-myself-ai 1
 Downloads the latest episode of `me-myself-ai`.
 
 ```console
-$ ./pod me-myself-ai me-myself-ai 3,5,7
+$ ./pod download me-myself-ai 3,5,7
 ```
 
 Downloads episodes `3`, `5`, and `7`.
