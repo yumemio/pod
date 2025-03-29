@@ -104,3 +104,9 @@ Use your favorite media player to listen to the downloaded episodes.
 
 - This Git repository is configured to ignore everything except a few files.
   Make sure to update `.gitignore` when adding new files.
+
+## Rant
+
+My favorite music player is [`cmus`](https://github.com/cmus/cmus) (absolutely amazing TUI player when you don't want to mess with `mpd`), and while it has a file explorer feature, it doesn't come with a podcast manager. I'm using this little program alongside `cmus` so that I can listen to podcasts and music from the same interface, which is why this repo focuses on listing and downloading bits of managing podcasts.
+
+In `cmus`, I also assigned <kbd>F2</kbd> to run `cd /srv/rec/podcast` (the git-cloned root of this repo) and open the list of podcasts, saving myself from the pain of navigating through my messy filesystem!
